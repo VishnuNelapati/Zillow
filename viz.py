@@ -15,7 +15,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.metrics import accuracy_score,confusion_matrix,mean_absolute_error,mean_squared_error
 import pydeck as pdk
 import math
-import altair as alt
+#import altair as alt
 import warnings
 import pickle
 
@@ -99,25 +99,22 @@ if menubar == "Exploratory Data Analysis":
     Ends here''')
 
     with map2:
-        def map(data, lat, lon, zoom):
-            max_price = max(data.price)
-            return pdk.Deck(
-                initial_view_state={
-                    "latitude": lat,
-                    "longitude": lon,
-                    "zoom": zoom,
+        st.pydeck_chart(pdk.Deck(initial_view_state={
+                    "latitude": 37.629,
+                    "longitude": -122.171,
+                    "zoom": 9,
                     "pitch": 50,
                 },
                 layers=[
                     pdk.Layer(
                         "ColumnLayer",
-                        data=data,
+                        data=data[['latitude','longitude','price','city','bedrooms','bathrooms','homeType']],
                         get_position=["longitude", "latitude"],
                         radius=90,
                         elevation_scale=25,
-                        get_elevation = "price / 25000" ,
+                        get_elevation = "price / 35000" ,
                         elevation_range=[0,25],
-                        get_fill_color=["price /20000" , 90, 0],
+                        get_fill_color=["price /30000" , 90, 0],
                         pickable=True,
                         extruded=True,
                         auto_highlight=True,
@@ -129,14 +126,13 @@ if menubar == "Exploratory Data Analysis":
                 "color": "white"
            }
         }
-            )
-        midpoint = (np.average(data['latitude']),np.average(data['longitude']))
-        r = map(data, midpoint[0], midpoint[1], 8.5)
-        r.to_html("grid_layer.html")
-        HtmlFile = open("https://raw.githubusercontent.com/VishnuNelapati/Zillow/main/grid_layer.html", 'r', encoding='utf-8')
-        source_code = HtmlFile.read()
-        components.html(source_code,width = 650,height=600,scrolling = True)
-
+            ))
+        # midpoint = (np.average(data['latitude']),np.average(data['longitude']))
+        # r = map(data, midpoint[0], midpoint[1], 8.5)
+        # r.to_html("grid_layer.html")
+        # HtmlFile = open("grid_layer.html", 'r', encoding='utf-8')
+        # source_code = HtmlFile.read()
+        # components.html(source_code,width = 650,height=600,scrolling = True)
         st.text('''Description of this map
 
 
@@ -303,9 +299,9 @@ ends Here""")
             st.plotly_chart(fig)
 
 
-#     fig = ex.line(data_frame=mortgagests,x='Date',y=['30YearFRM','15YearFRM','5YearFRM'],labels={'Date':'Time','value':'Mortgage Rates'})
-#     fig.update_layout(width = 800,height = 500)
-#     st.plotly_chart(fig)
+    # fig = ex.line(data_frame=mortgagests,x='Date',y=['30YearFRM','15YearFRM','5YearFRM'],labels={'Date':'Time','value':'Mortgage Rates'})
+    # fig.update_layout(width = 800,height = 500)
+    # st.plotly_chart(fig)
 
 
 #=========================================================================================================================================================
@@ -313,9 +309,7 @@ ends Here""")
 #=========================================================================================================================================================
 if menubar == "House Price Predictions":
 
-    import copy
-    #regression_df = copy.deepcopy(zillow())
-
+    pipeline1 = pickle.load(open('housemodel.pkl','rb'))
 
     regression_df = zillow_detail_df
     regression_df = regression_df[['city','price','bathrooms','bedrooms','livingArea',
@@ -326,58 +320,192 @@ if menubar == "House Price Predictions":
     reg_df = regression_df.drop('price',axis=1)
 
     ratings_dict ={'F':1,'D-':2,'D':3,'D+':4,'C-':5,'C':6,'C+':7,
-                             'B-':8,'B':9,'B+':10,'A-':11,'A':12,'A+':13}
+                                 'B-':8,'B':9,'B+':10,'A-':11,'A':12,'A+':13}
     city_avgdf = zillow_detail_df[['city','price']].groupby(by = ['city']).mean().reset_index().sort_values(by = ['price'])
     city_avgdf['ranks'] = city_avgdf['price'].rank()
     city_dict = dict(zip(city_avgdf.city.values,city_avgdf.ranks.values.astype(np.int64)))
 
-    i1,i2,i3,i4,i5 = st.columns((1,1,1,1,1))
-    i6,i7,i8,i9,i10 = st.columns((1,1,1,1,1))
-    i11,i12,i13,i14,i15 = st.columns((1,1,1,1,1))
-    i16,i17,i18,i19 = st.columns((1,1,1,1))
-    i20,i21,i22,i23 = st.columns((1,1,1,1))
+    def format(df):
+        df = df[reg_df.columns]
+        df.Schools = df['Schools'].map(ratings_dict)
+        df.Crime = df['Crime'].map(ratings_dict)
+        df.Employment = df['Employment'].map(ratings_dict)
+        df.Housing = df['Housing'].map(ratings_dict)
+        df.city = df['city'].map(city_dict)
 
-    input_list = [i1,i2,i3,i4,i5,i6,i7,i8,i9,i10,i11,i12,i13,i14,i15,i16,i17,i18,i19,i20,i21,i22,i23]
+        return df
 
-    d = {}
-    for j,i in enumerate(reg_df.columns):
-        if reg_df[i].dtype == 'object':
-            with input_list[j]:
-                v = st.selectbox(i.upper(),sorted(list(reg_df[i].unique())),key = i)
-                v = ratings_dict.get(v,v)
-                v = city_dict.get(v,v)
-                if i =='city':
-                    v = int(v)
+    test_data = pd.read_csv('https://raw.githubusercontent.com/VishnuNelapati/Zillow/main/testing.csv')
+
+    b1 = st.checkbox('testdata1')
+    if b1:
+        one = zillow_detail_df.loc[test_data.zpid,:].head(1)
+        st.write(one)
+
+        but1 = st.button("Predict house price for test data with user model",key =1)
+
+        if but1:
+
+            predicted_price = pipeline1.predict(format(one))
+
+            st.write("")
+            met1,met2,met3,met4 = st.columns((1,1,1,1))
+            with met1:
+                st.metric('Listed Price',"$"+str(float(one.price.iloc[0])))
+            with met2:
+                st.metric(label="Predicted Value(user model)", value="$"+str(float(predicted_price[0])), delta=str(round((float(predicted_price[0])-float(one.price.iloc[0]))*100/float(one.price.iloc[0]),2))+"%")
+            with met3:
+                st.metric(label="Zestimate Value(zillow model)", value="$"+str(float(one.zestimate.iloc[0])), delta=str(round((float(one.zestimate.iloc[0])-float(one.price.iloc[0]))*100/float(one.price.iloc[0]),2))+"%")
+
+        st.write("")
+
+    b2 = st.checkbox('testdata2')
+    if b2:
+        two = (zillow_detail_df.loc[test_data.zpid,:]).iloc[1:2,:]
+        st.write(two)
+
+        but1 = st.button("Predict house price for test data with user model",key=2)
+
+        if but1:
+
+            predicted_price = pipeline1.predict(format(two))
+
+            st.write("")
+            met1,met2,met3,met4 = st.columns((1,1,1,1))
+            with met1:
+                st.metric('Listed Price',"$"+str(float(two.price.iloc[0])))
+            with met2:
+                st.metric(label="Predicted Value(user model)", value="$"+str(float(predicted_price[0])), delta=str(round((float(predicted_price[0])-float(two.price.iloc[0]))*100/float(two.price.iloc[0]),2))+"%")
+            with met3:
+                st.metric(label="Zestimate Value(zillow model)", value="$"+str(float(two.zestimate.iloc[0])), delta=str(round((float(two.zestimate.iloc[0])-float(two.price.iloc[0]))*100/float(two.price.iloc[0]),2))+"%")
+
+        st.write("")
 
 
-        elif reg_df[i].dtype == 'int64':
-            with input_list[j]:
-                if i == 'Livability':
-                    v=st.slider(i.upper(),0,100,int(np.mean(reg_df[i])),key = i)
-                elif i == 'CalendarYear built':
-                    v=st.slider(i.upper(),int(min(reg_df[i])),int(max(reg_df[i])),2021,key = i)
-                else:
-                    v=st.slider(i.upper(),0,int(max(reg_df[i])),int(np.mean(reg_df[i])),key = i)
-        else:
-            with input_list[j]:
-                v= st.text_input(f"Enter Value for {i}",int(np.mean(reg_df[i])))
-                v = np.float(v)
 
-        d.update({i:v})
+    b3 = st.checkbox('testdata3')
+    if b3:
+        three = (zillow_detail_df.loc[test_data.zpid,:]).iloc[2:3,:]
+        st.write(three)
 
-    st.write("---",width = 700,height = 200)
+        but1 = st.button("Predict house price for test data with user model",key=3)
 
-    input = pd.DataFrame(d,index=[0])
-    st.dataframe(input)
+        if but1:
 
-    predict_button = st.button('Predict Price')
+            predicted_price = pipeline1.predict(format(three))
 
-    if predict_button:
-        pipeline1 = pickle.load(open('housemodel.pkl','rb'))
-        st.write('The predicted house price with specifications cost approximateley $',
-        np.round(pipeline1.predict(input),-4)[0])
+            st.write("")
+            met1,met2,met3,met4 = st.columns((1,1,1,1))
+            with met1:
+                st.metric('Listed Price',"$"+str(float(three.price.iloc[0])))
+            with met2:
+                st.metric(label="Predicted Value(user model)", value="$"+str(float(predicted_price[0])), delta=str(round((float(predicted_price[0])-float(three.price.iloc[0]))*100/float(three.price.iloc[0]),2))+"%")
+            with met3:
+                st.metric(label="Zestimate Value(zillow model)", value="$"+str(float(three.zestimate.iloc[0])), delta=str(round((float(three.zestimate.iloc[0])-float(three.price.iloc[0]))*100/float(three.price.iloc[0]),2))+"%")
+
+        st.write("")
+
+    b4 = st.checkbox('testdata4')
+    if b4:
+        four = (zillow_detail_df.loc[test_data.zpid,:]).iloc[3:4,:]
+        st.write(four)
+
+        but1 = st.button("Predict house price for test data with user model",key=4)
+
+        if but1:
+
+            predicted_price = pipeline1.predict(format(four))
+
+            st.write("")
+            met1,met2,met3,met4 = st.columns((1,1,1,1))
+            with met1:
+                st.metric('Listed Price',"$"+str(float(four.price.iloc[0])))
+            with met2:
+                st.metric(label="Predicted Value(user model)", value="$"+str(float(predicted_price[0])), delta=str(round((float(predicted_price[0])-float(four.price.iloc[0]))*100/float(four.price.iloc[0]),2))+"%")
+            with met3:
+                st.metric(label="Zestimate Value(zillow model)", value="$"+str(float(four.zestimate.iloc[0])), delta=str(round((float(four.zestimate.iloc[0])-float(four.price.iloc[0]))*100/float(four.price.iloc[0]),2))+"%")
+
+        st.write("")
+
+    b5 = st.checkbox('testdata5')
+    if b5:
+
+        five = (zillow_detail_df.loc[test_data.zpid,:]).iloc[4:5,:]
+        st.write(five)
+
+        but1 = st.button("Predict house price for test data with user model",key=5)
+
+        if but1:
+
+            predicted_price = pipeline1.predict(format(five))
+
+            st.write("")
+            met1,met2,met3,met4 = st.columns((1,1,1,1))
+            with met1:
+                st.metric('Listed Price',"$"+str(float(five.price.iloc[0])))
+            with met2:
+                st.metric(label="Predicted Value(user model)", value="$"+str(float(predicted_price[0])), delta=str(round((float(predicted_price[0])-float(five.price.iloc[0]))*100/float(five.price.iloc[0]),2))+"%")
+            with met3:
+                st.metric(label="Zestimate Value(zillow model)", value="$"+str(float(five.zestimate.iloc[0])), delta=str(round((float(five.zestimate.iloc[0])-float(five.price.iloc[0]))*100/float(five.price.iloc[0]),2))+"%")
+
+        st.write("")
+
+    st.write("")
+    st.write("---")
 
 
+    userinputs = st.expander("Predict house prices with your own customized data")
+
+    with userinputs:
+        st.write("---")
 
 
-    #st.metric(label="Streamlit version", value=0.87, delta=0.01)
+        i1,i2,i3,i4,i5 = st.columns((1,1,1,1,1))
+        i6,i7,i8,i9,i10 = st.columns((1,1,1,1,1))
+        i11,i12,i13,i14,i15 = st.columns((1,1,1,1,1))
+        i16,i17,i18,i19 = st.columns((1,1,1,1))
+        i20,i21,i22,i23 = st.columns((1,1,1,1))
+
+        input_list = [i1,i2,i3,i4,i5,i6,i7,i8,i9,i10,i11,i12,i13,i14,i15,i16,i17,i18,i19,i20,i21,i22,i23]
+
+        d = {}
+        for j,i in enumerate(reg_df.columns):
+            if reg_df[i].dtype == 'object':
+                with input_list[j]:
+                    v = st.selectbox(i.upper(),sorted(list(reg_df[i].unique())),key = i)
+                    # v = ratings_dict.get(v,v)
+                    # v = city_dict.get(v,v)
+                    # if i =='city':
+                    #     v = int(v)
+
+            elif reg_df[i].dtype == 'int64':
+                with input_list[j]:
+                    if i == 'Livability':
+                        v=st.slider(i.upper(),0,100,int(np.mean(reg_df[i])),key = i)
+                    elif i == 'CalendarYear built':
+                        v=st.slider(i.upper(),int(min(reg_df[i])),int(max(reg_df[i])),2021,key = i)
+                    else:
+                        v=st.slider(i.upper(),0,int(max(reg_df[i])),int(np.mean(reg_df[i])),key = i)
+            else:
+                with input_list[j]:
+                    v= st.text_input(f"Enter Value for {i}",int(np.mean(reg_df[i])))
+                    v = np.float(v)
+
+            d.update({i:v})
+
+        st.write("---",width = 700,height = 200)
+
+        input = pd.DataFrame(d,index=[0])
+        st.caption("User input values")
+        st.dataframe(input)
+
+        predict_button = st.button('Predict Price')
+
+        if predict_button:
+            st.write('The predicted house price with specifications cost approximateley $',
+            np.round(pipeline1.predict(format(input)),-4)[0])
+
+
+if menubar == "About Us":
+
+    pass
