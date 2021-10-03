@@ -179,12 +179,12 @@ Ends here''')
 #=======================================================================================================================================================
 
 
-@st.cache
+@st.cache(allow_output_mutation=True)
 def timeseriesdata():
     timeseries = pd.read_csv("https://raw.githubusercontent.com/VishnuNelapati/Zillow/main/AllState.csv")
     return timeseries
 
-@st.cache
+@st.cache(allow_output_mutation=True)
 def californiatimeseries():
     caltimeseries = pd.read_csv("https://raw.githubusercontent.com/VishnuNelapati/Zillow/main/CaState.csv")
     return caltimeseries
@@ -339,12 +339,16 @@ if menubar == "House Price Predictions":
 
     test_data = pd.read_csv('https://raw.githubusercontent.com/VishnuNelapati/Zillow/main/testing.csv')
 
-    b1 = st.checkbox('testdata1')
-    if b1:
-        one = zillow_detail_df.loc[test_data.zpid,:].head(1)
+
+    n = st.text_input("Number of houses to predict")
+    st.caption("choose a number between 1 and 10")
+    for j in range(int(n)):
+        st.write(f"Test Data {j+1}")
+        i = np.random.randint(10,len(test_data)-10)
+        one = (zillow_detail_df.loc[test_data.zpid,:]).iloc[i:i+1,:]
         st.write(one)
 
-        but1 = st.button("Predict house price for test data with user model",key =1)
+        but1 = st.button("Predict house price for test data with user model",key=j+100)
 
         if but1:
 
@@ -356,102 +360,18 @@ if menubar == "House Price Predictions":
                 st.metric('Listed Price',"$"+str(float(one.price.iloc[0])))
             with met2:
                 st.metric(label="Predicted Value(user model)", value="$"+str(float(predicted_price[0])), delta=str(round((float(predicted_price[0])-float(one.price.iloc[0]))*100/float(one.price.iloc[0]),2))+"%")
+                if (float(predicted_price[0])-float(one.price.iloc[0]))<0:
+                    st.markdown(f"The house price predicted using XGBRegressor model is **{abs(round((float(predicted_price[0])-float(one.price.iloc[0]))*100/float(one.price.iloc[0]),2))}% less** than the original price listed on zillow")
+                elif (float(predicted_price[0])-float(one.price.iloc[0]))>=0:
+                    st.markdown(f"The house price predicted using XGBRegressor model is **{abs(round((float(predicted_price[0])-float(one.price.iloc[0]))*100/float(one.price.iloc[0]),2))}% more** than the original price listed on zillow")
             with met3:
                 st.metric(label="Zestimate Value(zillow model)", value="$"+str(float(one.zestimate.iloc[0])), delta=str(round((float(one.zestimate.iloc[0])-float(one.price.iloc[0]))*100/float(one.price.iloc[0]),2))+"%")
+                if ((float(one.zestimate.iloc[0])-float(one.price.iloc[0])))<0:
+                    st.markdown(f"The house price predicted using Zillow model(Zestimate Value) is **{abs(round((float(one.zestimate.iloc[0])-float(one.price.iloc[0]))*100/float(one.price.iloc[0]),2))}% less** than the original price listed on zillow")
+                elif ((float(one.zestimate.iloc[0])-float(one.price.iloc[0])))>=0:
+                    st.markdown(f"The house price predicted using Zillow model(Zestimate Value) is **{abs(round((float(one.zestimate.iloc[0])-float(one.price.iloc[0]))*100/float(one.price.iloc[0]),2))}% more** than the original price listed on zillow")
 
-        st.write("")
-
-    b2 = st.checkbox('testdata2')
-    if b2:
-        two = (zillow_detail_df.loc[test_data.zpid,:]).iloc[1:2,:]
-        st.write(two)
-
-        but1 = st.button("Predict house price for test data with user model",key=2)
-
-        if but1:
-
-            predicted_price = pipeline1.predict(format(two))
-
-            st.write("")
-            met1,met2,met3,met4 = st.columns((1,1,1,1))
-            with met1:
-                st.metric('Listed Price',"$"+str(float(two.price.iloc[0])))
-            with met2:
-                st.metric(label="Predicted Value(user model)", value="$"+str(float(predicted_price[0])), delta=str(round((float(predicted_price[0])-float(two.price.iloc[0]))*100/float(two.price.iloc[0]),2))+"%")
-            with met3:
-                st.metric(label="Zestimate Value(zillow model)", value="$"+str(float(two.zestimate.iloc[0])), delta=str(round((float(two.zestimate.iloc[0])-float(two.price.iloc[0]))*100/float(two.price.iloc[0]),2))+"%")
-
-        st.write("")
-
-
-
-    b3 = st.checkbox('testdata3')
-    if b3:
-        three = (zillow_detail_df.loc[test_data.zpid,:]).iloc[2:3,:]
-        st.write(three)
-
-        but1 = st.button("Predict house price for test data with user model",key=3)
-
-        if but1:
-
-            predicted_price = pipeline1.predict(format(three))
-
-            st.write("")
-            met1,met2,met3,met4 = st.columns((1,1,1,1))
-            with met1:
-                st.metric('Listed Price',"$"+str(float(three.price.iloc[0])))
-            with met2:
-                st.metric(label="Predicted Value(user model)", value="$"+str(float(predicted_price[0])), delta=str(round((float(predicted_price[0])-float(three.price.iloc[0]))*100/float(three.price.iloc[0]),2))+"%")
-            with met3:
-                st.metric(label="Zestimate Value(zillow model)", value="$"+str(float(three.zestimate.iloc[0])), delta=str(round((float(three.zestimate.iloc[0])-float(three.price.iloc[0]))*100/float(three.price.iloc[0]),2))+"%")
-
-        st.write("")
-
-    b4 = st.checkbox('testdata4')
-    if b4:
-        four = (zillow_detail_df.loc[test_data.zpid,:]).iloc[3:4,:]
-        st.write(four)
-
-        but1 = st.button("Predict house price for test data with user model",key=4)
-
-        if but1:
-
-            predicted_price = pipeline1.predict(format(four))
-
-            st.write("")
-            met1,met2,met3,met4 = st.columns((1,1,1,1))
-            with met1:
-                st.metric('Listed Price',"$"+str(float(four.price.iloc[0])))
-            with met2:
-                st.metric(label="Predicted Value(user model)", value="$"+str(float(predicted_price[0])), delta=str(round((float(predicted_price[0])-float(four.price.iloc[0]))*100/float(four.price.iloc[0]),2))+"%")
-            with met3:
-                st.metric(label="Zestimate Value(zillow model)", value="$"+str(float(four.zestimate.iloc[0])), delta=str(round((float(four.zestimate.iloc[0])-float(four.price.iloc[0]))*100/float(four.price.iloc[0]),2))+"%")
-
-        st.write("")
-
-    b5 = st.checkbox('testdata5')
-    if b5:
-
-        five = (zillow_detail_df.loc[test_data.zpid,:]).iloc[4:5,:]
-        st.write(five)
-
-        but1 = st.button("Predict house price for test data with user model",key=5)
-
-        if but1:
-
-            predicted_price = pipeline1.predict(format(five))
-
-            st.write("")
-            met1,met2,met3,met4 = st.columns((1,1,1,1))
-            with met1:
-                st.metric('Listed Price',"$"+str(float(five.price.iloc[0])))
-            with met2:
-                st.metric(label="Predicted Value(user model)", value="$"+str(float(predicted_price[0])), delta=str(round((float(predicted_price[0])-float(five.price.iloc[0]))*100/float(five.price.iloc[0]),2))+"%")
-            with met3:
-                st.metric(label="Zestimate Value(zillow model)", value="$"+str(float(five.zestimate.iloc[0])), delta=str(round((float(five.zestimate.iloc[0])-float(five.price.iloc[0]))*100/float(five.price.iloc[0]),2))+"%")
-
-        st.write("")
-
+    st.write("")
     st.write("")
     st.write("---")
 
@@ -505,7 +425,7 @@ if menubar == "House Price Predictions":
 
         if predict_button:
             st.write('The predicted house price with specifications cost approximateley $',
-            np.round(pipeline1.predict(format(input)),-4)[0])
+            np.round(pipeline1.predict(format(input)))[0])
 
 
 if menubar == "About Us":
