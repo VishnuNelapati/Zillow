@@ -205,7 +205,7 @@ def californiatimeseries():
 
 timeseries = timeseriesdata()
 caltimeseries = californiatimeseries()
-mortgagests = mortgagestimesries()
+# mortgagests = mortgagestimesries()
 
 citiests = caltimeseries[caltimeseries.City.isin(zillow_detail_df.city.values)].groupby(by=['City','Year']).mean().reset_index()
 counties = caltimeseries[caltimeseries.City.isin(zillow_detail_df.city.values)].groupby(by=['CountyName','Year']).mean().reset_index()
