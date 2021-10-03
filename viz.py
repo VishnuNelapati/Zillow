@@ -311,7 +311,9 @@ if menubar == "House Price Predictions":
 
     pipeline1 = pickle.load(open('housemodel.pkl','rb'))
 
+    zillow_detail_df = zillow_detail_df.set_index('zpid')
     regression_df = zillow_detail_df
+
     regression_df = regression_df[['city','price','bathrooms','bedrooms','livingArea',
                             'homeType','taxAssessedValue','lotAreaValue','CalendarYear built',
                             'Price Square FeetPrice/sqft','HasFlooring','HasHeating','HasCooling','GarageSpaces','HasLaundary',
