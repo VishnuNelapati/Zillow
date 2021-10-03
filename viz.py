@@ -340,7 +340,7 @@ if menubar == "House Price Predictions":
     test_data = pd.read_csv('https://raw.githubusercontent.com/VishnuNelapati/Zillow/main/testing.csv')
 
 
-    n = st.text_input("Number of houses to predict")
+    n = st.text_input("Number of houses to predict",1)
     st.caption("choose a number between 1 and 10")
     for j in range(int(n)):
         st.write(f"Test Data {j+1}")
