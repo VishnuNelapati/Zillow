@@ -24,7 +24,7 @@ st.set_page_config(layout="wide")
 
 @st.cache(allow_output_mutation=True)
 def zillow():
-    return pd.read_csv("C:\\Users\\STSC\\OneDrive - horizon.csueastbay.edu\\Desktop\\Ban 612\\Project\\Z_Data\\Full Data\\main_df.csv")
+    return pd.read_csv("https://raw.githubusercontent.com/VishnuNelapati/Zillow/main/main_df.csv")
 
 zillow_detail_df = zillow()
 
@@ -133,7 +133,7 @@ if menubar == "Exploratory Data Analysis":
         midpoint = (np.average(data['latitude']),np.average(data['longitude']))
         r = map(data, midpoint[0], midpoint[1], 8.5)
         r.to_html("grid_layer.html")
-        HtmlFile = open("grid_layer.html", 'r', encoding='utf-8')
+        HtmlFile = open("https://raw.githubusercontent.com/VishnuNelapati/Zillow/main/grid_layer.html", 'r', encoding='utf-8')
         source_code = HtmlFile.read()
         components.html(source_code,width = 650,height=600,scrolling = True)
 
@@ -185,21 +185,21 @@ Ends here''')
 
 @st.cache
 def timeseriesdata():
-    timeseries = pd.read_csv("C:\\Users\\STSC\\OneDrive - horizon.csueastbay.edu\\Desktop\\Ban 612\\Project\\Z_Data\\Timeseries data\\AllState.csv")
+    timeseries = pd.read_csv("https://raw.githubusercontent.com/VishnuNelapati/Zillow/main/AllState.csv")
     return timeseries
 
 @st.cache
 def californiatimeseries():
-    caltimeseries = pd.read_csv("C:\\Users\\STSC\\OneDrive - horizon.csueastbay.edu\\Desktop\\Ban 612\\Project\\Z_Data\\Timeseries data\\CaState.csv")
+    caltimeseries = pd.read_csv("https://raw.githubusercontent.com/VishnuNelapati/Zillow/main/CaState.csv")
     return caltimeseries
 
-@st.cache
-def mortgagestimesries():
-    mort = pd.read_excel("C:\\Users\\STSC\\OneDrive - horizon.csueastbay.edu\\Desktop\\Ban 612\\Project\\Z_Data\\Timeseries data\\Mortgages.xlsx",
-         header=6,sheet_name = 'Full History')
-    mort = mort.iloc[:,[0,1,3,5]]
-    mort.columns = ['Date','30YearFRM','15YearFRM','5YearFRM']
-    return mort
+# @st.cache
+# def mortgagestimesries():
+#     mort = pd.read_excel("C:\\Users\\STSC\\OneDrive - horizon.csueastbay.edu\\Desktop\\Ban 612\\Project\\Z_Data\\Timeseries data\\Mortgages.xlsx",
+#          header=6,sheet_name = 'Full History')
+#     mort = mort.iloc[:,[0,1,3,5]]
+#     mort.columns = ['Date','30YearFRM','15YearFRM','5YearFRM']
+#     return mort
 
 
 
@@ -303,9 +303,9 @@ ends Here""")
             st.plotly_chart(fig)
 
 
-    fig = ex.line(data_frame=mortgagests,x='Date',y=['30YearFRM','15YearFRM','5YearFRM'],labels={'Date':'Time','value':'Mortgage Rates'})
-    fig.update_layout(width = 800,height = 500)
-    st.plotly_chart(fig)
+#     fig = ex.line(data_frame=mortgagests,x='Date',y=['30YearFRM','15YearFRM','5YearFRM'],labels={'Date':'Time','value':'Mortgage Rates'})
+#     fig.update_layout(width = 800,height = 500)
+#     st.plotly_chart(fig)
 
 
 #=========================================================================================================================================================
