@@ -397,76 +397,6 @@ Ends here''')
 ### Analysis:bulb::
 - Comparing average price change rate for data before and over the period of stay-at-home (i.e, March 19, 2020) , it can be observed that almost all the cities changed their housing prices during lockdown, except Belmont, Berkeley, Burlingame, Cupertino, Los Altos, Los Gatos and Richmond where they decreased the same.''')
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    # st.write("---")
-    # c1,c2 = st.columns((1,6))
-    #
-    # arg = "Crime"
-    # height = 600
-    # with c1:
-    #     st.write("""
-    #
-    # Options:
-    #
-    #     """)
-    #     arg = st.radio("",['city','Livability','Crime','Employment','Schools','Housing'])
-    #     if arg =='city':
-    #         height = 1500
-    #     if arg == 'Livability':
-    #         height = 800
-    #     st.write("")
-    #     agg = st.checkbox("NonAggregated")
-    #
-    #
-    # with c2:
-    #
-    #     if agg:
-    #         fig = ex.scatter(data_frame=zillow_detail_df,y=arg,x='price',size='price',size_max=15,
-    #         color=arg,height=height,width = 1000,title = f"Scatter plot representation of Price vs {arg}",
-    #         hover_data=['bathrooms','bedrooms','price','city'])
-    #         st.plotly_chart(fig)
-    #     else:
-    #         df = zillow_detail_df[['price',arg]].groupby(by=arg).mean().reset_index()
-    #         fig = ex.scatter(data_frame=df,y=arg,x='price',size='price',size_max=20,
-    #         color=arg,height=height,width = 1000,title = f"Scatter plot representation of Price vs {arg}",
-    #         hover_data=['price',arg])
-    #         st.plotly_chart(fig)
-
 #=======================================================================================================================================================
 #--------------------------------------------------------------Time Series Data ------------------------------------------------------------------------
 #=======================================================================================================================================================
@@ -633,36 +563,32 @@ if menubar == "House Price Predictions":
     test_data = pd.read_csv('https://raw.githubusercontent.com/VishnuNelapati/Zillow/main/testing.csv')
 
 
-    n = st.text_input("Number of houses to predict",1)
-    st.caption("choose a number between 1 and 10")
-    for j in range(int(n)):
-        st.write(f"Test Data {j+1}")
-        i = np.random.randint(10,len(test_data)-10)
-        one = (zillow_detail_df.loc[test_data.zpid,:]).iloc[i:i+1,:]
-        st.write(one)
+    i = np.random.randint(10,len(test_data)-10)
+    one = (zillow_detail_df.loc[test_data.zpid,:]).iloc[i:i+1,:]
+    st.write(one)
 
-        but1 = st.button("Predict house price for test data with user model",key=j+100)
+    but1 = st.button("Predict house price for test data with user model",key=1000)
 
-        if but1:
+    if but1:
 
-            predicted_price = pipeline1.predict(format(one))
+        predicted_price = pipeline1.predict(format(one))
 
-            st.write("")
-            met1,met2,met3,met4 = st.columns((1,1,1,1))
-            with met1:
-                st.metric('Listed Price',"$"+str(float(one.price.iloc[0])))
-            with met2:
-                st.metric(label="Predicted Value(user model)", value="$"+str(float(predicted_price[0])), delta=str(round((float(predicted_price[0])-float(one.price.iloc[0]))*100/float(one.price.iloc[0]),2))+"%")
-                if (float(predicted_price[0])-float(one.price.iloc[0]))<0:
-                    st.markdown(f"The house price predicted using XGBRegressor model is **{abs(round((float(predicted_price[0])-float(one.price.iloc[0]))*100/float(one.price.iloc[0]),2))}% less** than the original price listed on zillow")
-                elif (float(predicted_price[0])-float(one.price.iloc[0]))>=0:
-                    st.markdown(f"The house price predicted using XGBRegressor model is **{abs(round((float(predicted_price[0])-float(one.price.iloc[0]))*100/float(one.price.iloc[0]),2))}% more** than the original price listed on zillow")
-            with met3:
-                st.metric(label="Zestimate Value(zillow model)", value="$"+str(float(one.zestimate.iloc[0])), delta=str(round((float(one.zestimate.iloc[0])-float(one.price.iloc[0]))*100/float(one.price.iloc[0]),2))+"%")
-                if ((float(one.zestimate.iloc[0])-float(one.price.iloc[0])))<0:
-                    st.markdown(f"The house price predicted using Zillow model(Zestimate Value) is **{abs(round((float(one.zestimate.iloc[0])-float(one.price.iloc[0]))*100/float(one.price.iloc[0]),2))}% less** than the original price listed on zillow")
-                elif ((float(one.zestimate.iloc[0])-float(one.price.iloc[0])))>=0:
-                    st.markdown(f"The house price predicted using Zillow model(Zestimate Value) is **{abs(round((float(one.zestimate.iloc[0])-float(one.price.iloc[0]))*100/float(one.price.iloc[0]),2))}% more** than the original price listed on zillow")
+        st.write("")
+        met1,met2,met3,met4 = st.columns((1,1,1,1))
+        with met1:
+            st.metric('Listed Price',"$"+str(float(one.price.iloc[0])))
+        with met2:
+            st.metric(label="Predicted Value(user model)", value="$"+str(float(predicted_price[0])), delta=str(round((float(predicted_price[0])-float(one.price.iloc[0]))*100/float(one.price.iloc[0]),2))+"%")
+            if (float(predicted_price[0])-float(one.price.iloc[0]))<0:
+                st.markdown(f"The house price predicted using XGBRegressor model is **{abs(round((float(predicted_price[0])-float(one.price.iloc[0]))*100/float(one.price.iloc[0]),2))}% less** than the original price listed on zillow")
+            elif (float(predicted_price[0])-float(one.price.iloc[0]))>=0:
+                st.markdown(f"The house price predicted using XGBRegressor model is **{abs(round((float(predicted_price[0])-float(one.price.iloc[0]))*100/float(one.price.iloc[0]),2))}% more** than the original price listed on zillow")
+        with met3:
+            st.metric(label="Zestimate Value(zillow model)", value="$"+str(float(one.zestimate.iloc[0])), delta=str(round((float(one.zestimate.iloc[0])-float(one.price.iloc[0]))*100/float(one.price.iloc[0]),2))+"%")
+            if ((float(one.zestimate.iloc[0])-float(one.price.iloc[0])))<0:
+                st.markdown(f"The house price predicted using Zillow model(Zestimate Value) is **{abs(round((float(one.zestimate.iloc[0])-float(one.price.iloc[0]))*100/float(one.price.iloc[0]),2))}% less** than the original price listed on zillow")
+            elif ((float(one.zestimate.iloc[0])-float(one.price.iloc[0])))>=0:
+                st.markdown(f"The house price predicted using Zillow model(Zestimate Value) is **{abs(round((float(one.zestimate.iloc[0])-float(one.price.iloc[0]))*100/float(one.price.iloc[0]),2))}% more** than the original price listed on zillow")
 
     st.write("")
     st.write("")
