@@ -863,8 +863,9 @@ Estimated the price of the house.
 
 
 if menubar == "About Us":
-    i1,i2,i3 = st.columns((1,0.1,1))
+    i1,i2,i3 = st.columns((1,1,1))
     with i1:
+        st.write("")
         st.markdown('''# Group Members :
 
 - Deepthi Mounica Mandalaparty
@@ -874,5 +875,5 @@ if menubar == "About Us":
 - Sayali Mahamulkar
 - Vishnu Nelapati''')
 
-    with i3:
+    with i2:
         st.image('https://www.pngall.com/wp-content/uploads/9/Happy-Minions-PNG-Images.png',width = 300)
