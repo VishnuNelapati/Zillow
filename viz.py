@@ -538,10 +538,11 @@ if menubar == "House Price Predictions":
     regression_df = zillow_detail_df
 
     regression_df = regression_df[['city','price','bathrooms','bedrooms','livingArea',
-                            'homeType','taxAssessedValue','lotAreaValue','CalendarYear built',
-                            'Price Square FeetPrice/sqft','HasFlooring','HasHeating','HasCooling','GarageSpaces','HasLaundary',
-                             'FirePlaces','HasPool','HasSecurity','Stories','Livability','Crime','Employment','Housing','Schools']]
+                        'homeType','taxAssessedValue',
+                        'Price Square FeetPrice/sqft','HasHeating','HasCooling','GarageSpaces','HasPool',
+                         'FirePlaces']]
 
+    regression_df = regression_df[regression_df.GarageSpaces<=6]
     reg_df = regression_df.drop('price',axis=1)
 
     ratings_dict ={'F':1,'D-':2,'D':3,'D+':4,'C-':5,'C':6,'C+':7,
@@ -552,16 +553,15 @@ if menubar == "House Price Predictions":
 
     def format(df):
         df = df[reg_df.columns]
-        df.Schools = df['Schools'].map(ratings_dict)
-        df.Crime = df['Crime'].map(ratings_dict)
-        df.Employment = df['Employment'].map(ratings_dict)
-        df.Housing = df['Housing'].map(ratings_dict)
+        # df.Schools = df['Schools'].map(ratings_dict)
+        # df.Crime = df['Crime'].map(ratings_dict)
+        # df.Employment = df['Employment'].map(ratings_dict)
+        # df.Housing = df['Housing'].map(ratings_dict)
         df.city = df['city'].map(city_dict)
-
+        #
         return df
 
     test_data = pd.read_csv('https://raw.githubusercontent.com/VishnuNelapati/Zillow/main/testing.csv')
-
 
     i = np.random.randint(10,len(test_data)-10)
     one = (zillow_detail_df.loc[test_data.zpid,:]).iloc[i:i+1,:]
@@ -601,23 +601,18 @@ if menubar == "House Price Predictions":
         st.write("---")
 
 
-        i1,i2,i3,i4,i5 = st.columns((1,1,1,1,1))
-        i6,i7,i8,i9,i10 = st.columns((1,1,1,1,1))
-        i11,i12,i13,i14,i15 = st.columns((1,1,1,1,1))
-        i16,i17,i18,i19 = st.columns((1,1,1,1))
-        i20,i21,i22,i23 = st.columns((1,1,1,1))
+        i1,i2,i3 = st.columns((1,1,1))
+        i4,i5,i6 = st.columns((1,1,1))
+        i7,i8,i9 = st.columns((1,1,1))
+        i10,i11,i12 = st.columns((1,1,1))
 
-        input_list = [i1,i2,i3,i4,i5,i6,i7,i8,i9,i10,i11,i12,i13,i14,i15,i16,i17,i18,i19,i20,i21,i22,i23]
+        input_list = [i1,i2,i3,i4,i5,i6,i7,i8,i9,i10,i11,i12]
 
         d = {}
         for j,i in enumerate(reg_df.columns):
             if reg_df[i].dtype == 'object':
                 with input_list[j]:
                     v = st.selectbox(i.upper(),sorted(list(reg_df[i].unique())),key = i)
-                    # v = ratings_dict.get(v,v)
-                    # v = city_dict.get(v,v)
-                    # if i =='city':
-                    #     v = int(v)
 
             elif reg_df[i].dtype == 'int64':
                 with input_list[j]:
