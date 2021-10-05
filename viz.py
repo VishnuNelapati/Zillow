@@ -540,7 +540,7 @@ if menubar == "House Price Predictions":
     regression_df = regression_df[['city','price','bathrooms','bedrooms','livingArea',
                         'homeType','taxAssessedValue',
                         'Price Square FeetPrice/sqft','HasHeating','HasCooling','GarageSpaces','HasPool',
-                         'FirePlaces']]
+                         'FirePlaces','Crime', 'Employment', 'Schools']]
 
     regression_df = regression_df[regression_df.GarageSpaces<=6]
     reg_df = regression_df.drop('price',axis=1)
@@ -553,9 +553,9 @@ if menubar == "House Price Predictions":
 
     def format(df):
         df = df[reg_df.columns]
-        # df.Schools = df['Schools'].map(ratings_dict)
-        # df.Crime = df['Crime'].map(ratings_dict)
-        # df.Employment = df['Employment'].map(ratings_dict)
+        df.Schools = df['Schools'].map(ratings_dict)
+        df.Crime = df['Crime'].map(ratings_dict)
+        df.Employment = df['Employment'].map(ratings_dict)
         # df.Housing = df['Housing'].map(ratings_dict)
         df.city = df['city'].map(city_dict)
         #
@@ -570,7 +570,7 @@ if menubar == "House Price Predictions":
     but1 = st.button("Predict house price for test data with user model",key=1000)
 
     if but1:
-
+        st.write("")
         predicted_price = pipeline1.predict(format(one))
 
         st.write("")
@@ -605,8 +605,9 @@ if menubar == "House Price Predictions":
         i4,i5,i6 = st.columns((1,1,1))
         i7,i8,i9 = st.columns((1,1,1))
         i10,i11,i12 = st.columns((1,1,1))
+        i13,i14,i15 = st.columns((1,1,1))
 
-        input_list = [i1,i2,i3,i4,i5,i6,i7,i8,i9,i10,i11,i12]
+        input_list = [i1,i2,i3,i4,i5,i6,i7,i8,i9,i10,i11,i12,i13,i14,i15]
 
         d = {}
         for j,i in enumerate(reg_df.columns):
