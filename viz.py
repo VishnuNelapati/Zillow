@@ -717,24 +717,34 @@ if menubar == "House Price Predictions":
     compare = pd.concat((y_test,np.round(pred),zest),axis = 1)
 
 
-    res = pd.DataFrame({'r2_score':[r2_score(y_test,pred)],
-                   'mean_squared_error_zest':[np.sqrt(mean_squared_error(y_test,zest))],
-                   'mean_squared_error_pred':[np.sqrt(mean_squared_error(y_test,pred))]
+    test_res = pd.DataFrame({'Test r2_score':[round(r2_score(y_test,pred),2)],
+                   'MSE Zillow Model':[np.sqrt(mean_squared_error(y_test,zest))],
+                   'MSE XGB Model':[np.sqrt(mean_squared_error(y_test,pred))]
                    },index=[1])
 
-    x4,x5,x6 = st.columns((0.8,0.1,1))
+
+    x4,x5,x6 = st.columns((1,0.1,1))
     with x4:
-        st.write("Metrics")
+
+        st.markdown("**Test Data Metrics:**")
         st.markdown('''The metrics for the XGBoost model,r2 score close to 98 which indicates that model is able to capture
         Of the variance in y using the features. The mean square error for Zillow model is 156k  and mean square error of
-        XGB model is 159k.
+        XGB model is 167k.
         ''')
         st.write('')
-        st.write(res)
+        st.write(test_res)
 
+        st.markdown("""**Mean Square Error(MSE):**
+- Mean Suqare Error is Sum of squares of residuals.
+- Residuals is defined as difference between the listed price and predicted price.
+- The Lower the mean square error means better model is.
+""")
+
+
+
+    with x6:
+        st.write("")
         st.markdown('''As we can observe from the **Distribution of residuals** plot most of the residuals are around zero with few extremes having $1.5M and negative $1M''')
-
-    with x5:
         fig = ex.histogram(compare['price']-compare['Predicted'])
         fig.update_layout(xaxis = dict(title = 'Error'),title = 'Distribution of residuals',title_x = 0.5,title_y = 0.9)
         st.plotly_chart(fig)
@@ -765,6 +775,8 @@ If the circle color is Closer to orange or
 Yellow it indicates that we have under
 Estimated the price of the house.
 ''')
+
+    st.write("---")
 
     st.subheader("Predict House prices using the test data")
 
