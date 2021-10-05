@@ -33,6 +33,20 @@ def zillow():
 def ph():
     return pd.read_csv("https://raw.githubusercontent.com/VishnuNelapati/Zillow/main/PriceHistory.csv")
 
+@st.cache(allow_output_mutation=True)
+def timeseriesdata():
+    timeseries = pd.read_csv("https://raw.githubusercontent.com/VishnuNelapati/Zillow/main/AllState.csv")
+    return timeseries
+
+@st.cache(allow_output_mutation=True)
+def californiatimeseries():
+    caltimeseries = pd.read_csv("https://raw.githubusercontent.com/VishnuNelapati/Zillow/main/CaState.csv")
+    return caltimeseries
+
+timeseries = timeseriesdata()
+caltimeseries = californiatimeseries()
+# mortgagests = mortgagestimesries()
+
 zillow_detail_df = zillow()
 PriceHistory = ph()
 
@@ -41,20 +55,118 @@ df_joined = pd.merge(PriceHistory,zillow_detail_df, how='inner',left_on='Zpid',r
 st.sidebar.header('Hello There! :wave:')
 st.sidebar.subheader("""Welcome !""")
 
+citiests = caltimeseries.groupby(by=['City','Year']).mean().reset_index()
+counties = caltimeseries.groupby(by=['CountyName','Year']).mean().reset_index()
 menubar = st.sidebar.radio("",['Home','Overview','Exploratory Data Analysis','House Price Predictions','About Us'])
 
 if menubar == 'Home':
     st.title("Real Estate Analysis - California Bay Area :house:")
+    st.write("")
+
+    st.markdown('''Real Estate is part and parcel of every ones life.One has to involve in process of buying the house at certain point of time in life.
+From Real estate investor point of view , real estate investment analysis is basically the process of analyzing investment opportunities
+to decide whether or not they’ll give you the profits you’re aiming for to achieve your investment goals and this is perhaps the most crucial part to success.
+''')
+
+    st.markdown('''     For normal induvidual house is a necessity and one of the big investments in their life.SO ,There are many factors which affect the house prices such as number of bedrooms, bathrooms, mortgage rates ,crime rates in neighborhood, schools in neighborhood and many other factors.
+    Having a good overview on the market will help in buying or selling the house in the market at right price.''')
+
+    st.write("")
+    st.subheader("TimeSeries Chart of Average House Price In Various counties/cities of California")
+
+    time14,time15,time16 = st.columns((0.35,0.05,1))
 
 
-    with st.echo():
+    with time14:
+        c = st.radio("",['Counties','cities'])
+        st.write("")
+        st.markdown('''California is on of the hottest cities for real estate and growing strong day by day.
+We have choose Bay Area as our reaserch area to analyse real estate market.
+Below plot shows Average price for each of the counties and cities in california.
+Grey Shaded Areas represent Economic recision and covid-19 pandemic respectively.
 
-        st.write("Hello")
-        st.text("This is text")
-        st.header("Header")
-        st.markdown("**Markdown**")
-        st.caption('This is a string that explains something above.')
-        st.title("Title")
+Various Cities and counties can be analysed by filtering options available at top and side expander bar
+
+**Note: San Francisco county average price is declining since lockdown**''')
+
+
+    with time16:
+
+        if c == 'Counties':
+            expander3 = st.expander('Select Counties')
+            with expander3:
+                st.caption("Please select the Counties from the dropdown")
+                county = st.multiselect("",counties.CountyName.unique(),counties.CountyName.unique()[:10])
+            fig = ex.line(data_frame=counties[counties.CountyName.isin(county)],x='Year',y='MedianPrice',color='CountyName')
+            fig.update_layout(yaxis = dict(title = "Average Price"))
+            fig.add_hline(y=counties[counties.CountyName.isin(county)].MedianPrice.mean(), line_dash="dot",
+            annotation_text="Median Price of all Counties",
+            annotation_position="bottom right")
+            fig.add_vrect(x0="2008", x1="2009.75",
+            annotation_text="Economic Recision", annotation_position="top left",
+            fillcolor="black", opacity=0.25, line_width=0)
+            fig.add_vrect(x0="2020.1", x1="2021.25",
+            annotation_text="Covid", annotation_position="top left",
+            fillcolor="black", opacity=0.25, line_width=0)
+            fig.update_layout(width = 950,height = 500)
+            st.plotly_chart(fig)
+
+        if c == 'cities':
+            expander4 = st.expander('Select Cities')
+            with expander4:
+                st.caption("Please select the cities from the dropdown")
+                #['Dublin','Danville','Alamo','San Francisco','Los Altos','Sunnyvale','Fremont']
+                city = st.multiselect("",citiests.City.unique(),citiests.City.unique()[:10])
+            fig = ex.line(data_frame = citiests[citiests.City.isin(city)],
+            x='Year',y='MedianPrice',color = 'City')
+            fig.update_layout(yaxis = dict(title = "Average Price"))
+            fig.add_hline(y=citiests[citiests.City.isin(city)].MedianPrice.mean(), line_dash="dot",
+              annotation_text="Average Price of all Cities",
+              annotation_position="bottom right")
+            fig.add_vrect(x0="2008", x1="2009.75",
+              annotation_text="Economic Recision", annotation_position="top left",
+              fillcolor="black", opacity=0.25, line_width=0)
+            fig.add_vrect(x0="2020.1", x1="2021.25",
+              annotation_text="Covid", annotation_position="top left",
+              fillcolor="black", opacity=0.25, line_width=0)
+            fig.update_layout(width = 950,height = 500)
+            st.plotly_chart(fig)
+
+    st.subheader("TimeSeries Chart of Average House Price In Various States of USA")
+    st.write("")
+    time1,time2,time3 = st.columns((1,0.05,0.35))
+
+    with time1:
+        expander2 = st.expander('Select States')
+        s = ['NY','CA','NJ','HI','DC']
+        with expander2:
+            st.caption("Please select the states from the dropdown")
+            s = st.multiselect("",timeseries.State.unique(),timeseries.State.unique()[:10])
+        fig = ex.line(data_frame=timeseries[timeseries.State.isin(s)],x="Year",y='MedianPrice',color='State')
+        fig.update_layout(width = 950,height =500,yaxis = dict(title = "Average Price"))
+        #plot_bgcolor = 'rgb(0,0,0)'
+        fig.add_hline(y=timeseries[timeseries.State.isin(s)].MedianPrice.mean(), line_dash="dot",
+          annotation_text="Average Price of all States",
+          annotation_position="bottom right")
+        fig.add_vrect(x0="2008", x1="2009.75",
+          annotation_text="Economic Recision", annotation_position="top left",
+          fillcolor="black", opacity=0.25, line_width=0)
+        fig.add_vrect(x0="2020.1", x1="2021.25",
+          annotation_text="Covid", annotation_position="top left",
+          fillcolor="black", opacity=0.25, line_width=0)
+        st.plotly_chart(fig)
+
+    with time3:
+        st.write("")
+        st.write("")
+        st.markdown("""This chart show all the average house prices of all states across USA.California,DC,Hawai are top in average house prices.
+Various states can selected from the expander bar on top of the chart.
+Grey Shaded Areas represent Economic recision and covid-19 pandemic respectively.""")
+
+
+    st.markdown('''So in our project we are trying to analyse which factors effect the house prices,which home types are available on market,which areas are having more price change etc.
+We have choose to scrape data from zillow and analysed various analysis questions.A regression model is built to predict the house prices which takes user inputs like number of bedrooms,bathrooms,price/sqft,liviing area etc.. and predict the price.
+''')
 
 #=========================================================================================================================================
 # --------------------------------------------------Map ploting---------------------------------------------------------------------------#
@@ -62,91 +174,6 @@ if menubar == 'Home':
 
 if menubar == "Exploratory Data Analysis":
 
-    st.dataframe(zillow_detail_df,width = 1000,height = 350)
-
-    st.title("Geo Distribution of Houses BayArea - California")
-
-    data = zillow_detail_df
-    expander = st.expander("Fiter Map")
-
-    with expander:
-        st.subheader("Select the parameters below as per requirement")
-        st.caption("Note: Please uncheck **Full Data** to update the maps based on selected parameters")
-        r1,r2,r3 = st.columns((1,1,1))
-        with r1:
-            bedrooms = st.multiselect("Select the no. of bedrooms",zillow_detail_df.bedrooms.unique(),zillow_detail_df.bedrooms.unique())
-        with r2:
-            bathrooms = st.multiselect("Select the no. of bathrooms",zillow_detail_df.bathrooms.unique(),zillow_detail_df.bathrooms.unique())
-        with r3:
-            Hometype = st.multiselect("Select the Angle of View", zillow_detail_df.homeType.unique(),zillow_detail_df.homeType.unique())
-        # with r4:
-        #     city = st.selectbox("Select the cities",sorted(zillow_detail_df.city.unique()))
-        data = zillow_detail_df[(zillow_detail_df.homeType.isin(Hometype))&((zillow_detail_df.bedrooms.isin(bedrooms)) & (zillow_detail_df.bathrooms.isin(bathrooms)))]
-
-
-    if st.checkbox("Full Data"):
-        data = zillow_detail_df
-
-
-    mapspace1,map1,mapspace2,map2,mapspace3 = st.columns((0.05,1,0.05,1,0.05))
-
-    with map1:
-        st.subheader("Bubble Chart")
-
-        fig = ex.scatter_mapbox(data[(data.notnull()['latitude'] & data.notnull()['price'])],
-                                lat="latitude", lon="longitude", hover_name="city",
-                                color = 'price', zoom=9, height=500,width = 650,size_max=12,size='price',hover_data = ['bedrooms','bathrooms','homeType'])
-        fig.update_layout(mapbox_style="open-street-map")
-
-        fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
-
-        st.plotly_chart(fig)
-
-
-        st.markdown('''**This map show distribution of houses around california.
-The size of the bubble represents the house price.The larger the size of the bubble the higher the price of the house.The color of the bubble indicates
-in which range the house prices fall.Darker blue represents the house is of low price and yellow or orange represnet the houses of higher price.**''')
-
-    with map2:
-        st.subheader("Elevation  Chart")
-        st.pydeck_chart(pdk.Deck(initial_view_state={
-                    "latitude": 37.629,
-                    "longitude": -122.171,
-                    "zoom": 9,
-                    "pitch": 50,
-                },
-                layers=[
-                    pdk.Layer(
-                        "ColumnLayer",
-                        data=data[['latitude','longitude','price','city','bedrooms','bathrooms','homeType']],
-                        get_position=["longitude", "latitude"],
-                        radius=90,
-                        elevation_scale=25,
-                        get_elevation = "price / 35000" ,
-                        elevation_range=[0,25],
-                        get_fill_color=["price /30000" , 90, 0],
-                        pickable=True,
-                        extruded=True,
-                        auto_highlight=True,
-                    ),
-                ],tooltip = {
-           "html": "<b>Price:</b> {price} <br/> <b>City:</b> {city} <br/> <b>Bedrooms:</b> {bedrooms} <br/> <b>Bathrooms:</b> {bathrooms} <br/> <b>HomeType:</b> {homeType} ",
-           "style": {
-                "backgroundColor": "steelblue",
-                "color": "white"
-           }
-        }
-            ))
-        # midpoint = (np.average(data['latitude']),np.average(data['longitude']))
-        # r = map(data, midpoint[0], midpoint[1], 8.5)
-        # r.to_html("grid_layer.html")
-        # HtmlFile = open("grid_layer.html", 'r', encoding='utf-8')
-        # source_code = HtmlFile.read()
-        # components.html(source_code,width = 650,height=600,scrolling = True)
-        st.markdown('''**This Map show house Distribution in bay area.
-The height of each stick indicates how high the price of the house is.
-The color red indicates house is high price and green indicates that house is low price.
-The Map can be zoomed in and angle of view can be chnaged by mouse left click.**''')
 
 
     st.title("Analysis Questions")
@@ -542,133 +569,105 @@ The Map can be zoomed in and angle of view can be chnaged by mouse left click.**
 - Comparing average price change rate for data before and over the period of stay-at-home (i.e, March 19, 2020) , it can be observed that almost all the cities changed their housing prices during lockdown, except Belmont, Berkeley, Burlingame, Cupertino, Los Altos, Los Gatos and Richmond where they decreased the same.''')
 
 #=======================================================================================================================================================
-#--------------------------------------------------------------Time Series Data ------------------------------------------------------------------------
+#--------------------------------------------------------------Over view ------------------------------------------------------------------------
 #=======================================================================================================================================================
 
 
-@st.cache(allow_output_mutation=True)
-def timeseriesdata():
-    timeseries = pd.read_csv("https://raw.githubusercontent.com/VishnuNelapati/Zillow/main/AllState.csv")
-    return timeseries
-
-@st.cache(allow_output_mutation=True)
-def californiatimeseries():
-    caltimeseries = pd.read_csv("https://raw.githubusercontent.com/VishnuNelapati/Zillow/main/CaState.csv")
-    return caltimeseries
-
-# @st.cache
-# def mortgagestimesries():
-#     mort = pd.read_excel("C:\\Users\\STSC\\OneDrive - horizon.csueastbay.edu\\Desktop\\Ban 612\\Project\\Z_Data\\Timeseries data\\Mortgages.xlsx",
-#          header=6,sheet_name = 'Full History')
-#     mort = mort.iloc[:,[0,1,3,5]]
-#     mort.columns = ['Date','30YearFRM','15YearFRM','5YearFRM']
-#     return mort
-
-
-
-timeseries = timeseriesdata()
-caltimeseries = californiatimeseries()
-# mortgagests = mortgagestimesries()
-
-citiests = caltimeseries[caltimeseries.City.isin(zillow_detail_df.city.values)].groupby(by=['City','Year']).mean().reset_index()
-counties = caltimeseries[caltimeseries.City.isin(zillow_detail_df.city.values)].groupby(by=['CountyName','Year']).mean().reset_index()
 
 
 if menubar == "Overview":
-    st.subheader("TimeSeries Chart of Median House Price In Various States of USA")
-    st.write("")
-    time1,time2,time3 = st.columns((1,0.05,0.35))
+    st.subheader("Zillow Data")
 
-    with time1:
-        expander2 = st.expander('Select States')
-        s = ['NY','CA','NJ','HI','DC']
-        with expander2:
-            st.caption("Please select the states from the dropdown")
-            s = st.multiselect("",timeseries.State.unique(),timeseries.State.unique()[:10])
-        fig = ex.line(data_frame=timeseries[timeseries.State.isin(s)],x="Year",y='MedianPrice',color='State')
-        fig.update_layout(width = 950,height =500)
-        #plot_bgcolor = 'rgb(0,0,0)'
-        fig.add_hline(y=timeseries[timeseries.State.isin(s)].MedianPrice.mean(), line_dash="dot",
-          annotation_text="Median Price of all States",
-          annotation_position="bottom right")
-        fig.add_vrect(x0="2008", x1="2009.75",
-          annotation_text="Economic Recision", annotation_position="top left",
-          fillcolor="black", opacity=0.25, line_width=0)
-        fig.add_vrect(x0="2020.1", x1="2021.25",
-          annotation_text="Covid", annotation_position="top left",
-          fillcolor="black", opacity=0.25, line_width=0)
+    st.dataframe(zillow_detail_df,height = 350)
+
+    st.write("")
+
+    st.write("[Download data as CSV ](https://raw.githubusercontent.com/VishnuNelapati/Zillow/main/main_df.csv)")
+
+    st.title("Geo Distribution of Houses BayArea - California")
+
+    data = zillow_detail_df
+    expander = st.expander("Fiter Map")
+
+    with expander:
+        st.subheader("Select the parameters below as per requirement")
+        st.caption("Note: Please uncheck **Full Data** to update the maps based on selected parameters")
+        r1,r2,r3 = st.columns((1,1,1))
+        with r1:
+            bedrooms = st.multiselect("Select the no. of bedrooms",zillow_detail_df.bedrooms.unique(),zillow_detail_df.bedrooms.unique())
+        with r2:
+            bathrooms = st.multiselect("Select the no. of bathrooms",zillow_detail_df.bathrooms.unique(),zillow_detail_df.bathrooms.unique())
+        with r3:
+            Hometype = st.multiselect("Select the Angle of View", zillow_detail_df.homeType.unique(),zillow_detail_df.homeType.unique())
+        # with r4:
+        #     city = st.selectbox("Select the cities",sorted(zillow_detail_df.city.unique()))
+        data = zillow_detail_df[(zillow_detail_df.homeType.isin(Hometype))&((zillow_detail_df.bedrooms.isin(bedrooms)) & (zillow_detail_df.bathrooms.isin(bathrooms)))]
+
+
+    if st.checkbox("Full Data"):
+        data = zillow_detail_df
+
+
+    mapspace1,map1,mapspace2,map2,mapspace3 = st.columns((0.05,1,0.05,1,0.05))
+
+    with map1:
+        st.subheader("Bubble Chart")
+
+        fig = ex.scatter_mapbox(data[(data.notnull()['latitude'] & data.notnull()['price'])],
+                                lat="latitude", lon="longitude", hover_name="city",
+                                color = 'price', zoom=9, height=500,width = 650,size_max=12,size='price',hover_data = ['bedrooms','bathrooms','homeType'])
+        fig.update_layout(mapbox_style="open-street-map")
+
+        fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+
         st.plotly_chart(fig)
 
-    with time3:
-        st.write("---")
-        st.text("""
 
+        st.markdown('''**This map show distribution of houses around california.
+    The size of the bubble represents the house price.The larger the size of the bubble the higher the price of the house.The color of the bubble indicates
+    in which range the house prices fall.Darker blue represents the house is of low price and yellow or orange represnet the houses of higher price.**''')
 
-        Description for the chart goes here
+    with map2:
+        st.subheader("Elevation  Chart")
+        st.pydeck_chart(pdk.Deck(initial_view_state={
+                    "latitude": 37.629,
+                    "longitude": -122.171,
+                    "zoom": 9,
+                    "pitch": 50,
+                },
+                layers=[
+                    pdk.Layer(
+                        "ColumnLayer",
+                        data=data[['latitude','longitude','price','city','bedrooms','bathrooms','homeType']],
+                        get_position=["longitude", "latitude"],
+                        radius=90,
+                        elevation_scale=25,
+                        get_elevation = "price / 35000" ,
+                        elevation_range=[0,25],
+                        get_fill_color=["price /30000" , 90, 0],
+                        pickable=True,
+                        extruded=True,
+                        auto_highlight=True,
+                    ),
+                ],tooltip = {
+           "html": "<b>Price:</b> {price} <br/> <b>City:</b> {city} <br/> <b>Bedrooms:</b> {bedrooms} <br/> <b>Bathrooms:</b> {bathrooms} <br/> <b>HomeType:</b> {homeType} ",
+           "style": {
+                "backgroundColor": "steelblue",
+                "color": "white"
+           }
+        }
+            ))
+        # midpoint = (np.average(data['latitude']),np.average(data['longitude']))
+        # r = map(data, midpoint[0], midpoint[1], 8.5)
+        # r.to_html("grid_layer.html")
+        # HtmlFile = open("grid_layer.html", 'r', encoding='utf-8')
+        # source_code = HtmlFile.read()
+        # components.html(source_code,width = 650,height=600,scrolling = True)
+        st.markdown('''**This Map show house Distribution in bay area.
+    The height of each stick indicates how high the price of the house is.
+    The color red indicates house is high price and green indicates that house is low price.
+    The Map can be zoomed in and angle of view can be chnaged by mouse left click.**''')
 
-
-
-Ends Here""")
-
-    st.subheader("TimeSeries Chart of Median House Price In Various counties/cities of California")
-
-    time4,time5,time6 = st.columns((0.35,0.05,1))
-
-
-    with time4:
-        c = st.radio("",['Counties','cities'])
-
-        st.write("---")
-        st.text("""Description for the chart goes here
-
-
-
-ends Here""")
-
-    with time6:
-
-        if c == 'Counties':
-            expander3 = st.expander('Select Counties')
-            with expander3:
-                st.caption("Please select the Counties from the dropdown")
-                county = st.multiselect("",counties.CountyName.unique(),counties.CountyName.unique())
-            fig = ex.line(data_frame=counties[counties.CountyName.isin(county)],x='Year',y='MedianPrice',color='CountyName')
-            fig.add_hline(y=counties[counties.CountyName.isin(county)].MedianPrice.mean(), line_dash="dot",
-            annotation_text="Median Price of all Counties",
-            annotation_position="bottom right")
-            fig.add_vrect(x0="2008", x1="2009.75",
-            annotation_text="Economic Recision", annotation_position="top left",
-            fillcolor="black", opacity=0.25, line_width=0)
-            fig.add_vrect(x0="2020.1", x1="2021.25",
-            annotation_text="Covid", annotation_position="top left",
-            fillcolor="black", opacity=0.25, line_width=0)
-            fig.update_layout(width = 950,height = 500)
-            st.plotly_chart(fig)
-
-        if c == 'cities':
-            expander4 = st.expander('Select Cities')
-            with expander4:
-                st.caption("Please select the cities from the dropdown")
-                #['Dublin','Danville','Alamo','San Francisco','Los Altos','Sunnyvale','Fremont']
-                city = st.multiselect("",citiests.City.unique(),citiests.City.unique()[:10])
-            fig = ex.line(data_frame = citiests[citiests.City.isin(city)],
-            x='Year',y='MedianPrice',color = 'City')
-            fig.add_hline(y=citiests[citiests.City.isin(city)].MedianPrice.mean(), line_dash="dot",
-              annotation_text="Median Price of all Cities",
-              annotation_position="bottom right")
-            fig.add_vrect(x0="2008", x1="2009.75",
-              annotation_text="Economic Recision", annotation_position="top left",
-              fillcolor="black", opacity=0.25, line_width=0)
-            fig.add_vrect(x0="2020.1", x1="2021.25",
-              annotation_text="Covid", annotation_position="top left",
-              fillcolor="black", opacity=0.25, line_width=0)
-            fig.update_layout(width = 950,height = 500)
-            st.plotly_chart(fig)
-
-
-    # fig = ex.line(data_frame=mortgagests,x='Date',y=['30YearFRM','15YearFRM','5YearFRM'],labels={'Date':'Time','value':'Mortgage Rates'})
-    # fig.update_layout(width = 800,height = 500)
-    # st.plotly_chart(fig)
 
 
 #=========================================================================================================================================================
@@ -857,13 +856,23 @@ Estimated the price of the house.
         predict_button = st.button('Predict Price')
 
         if predict_button:
-            st.write('The predicted house price with specifications cost approximateley $',
-            np.round(pipeline1.predict(format(input)))[0])
+            st.subheader(f'The predicted house price with specifications cost approximateley ${np.round(pipeline1.predict(format(input)))[0]}')
 
 
 
 
 
 if menubar == "About Us":
+    i1,i2,i3 = st.columns((1,0.1,1))
+    with i1:
+        st.markdown('''# Group Members :
 
-    pass
+- Deepthi Mounica Mandalaparty
+- Kavya	Pothula
+- Prathamesh Bhople
+- Rosie	Nguyen
+- Sayali Mahamulkar
+- Vishnu Nelapati''')
+
+    with i3:
+        st.image('https://www.pngall.com/wp-content/uploads/9/Happy-Minions-PNG-Images.png',width = 300)
