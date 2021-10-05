@@ -99,9 +99,6 @@ Various Cities and counties can be analysed by filtering options available at to
                 county = st.multiselect("",counties.CountyName.unique(),counties.CountyName.unique()[:10])
             fig = ex.line(data_frame=counties[counties.CountyName.isin(county)],x='Year',y='MedianPrice',color='CountyName')
             fig.update_layout(yaxis = dict(title = "Average Price"))
-            fig.add_hline(y=counties[counties.CountyName.isin(county)].MedianPrice.mean(), line_dash="dot",
-            annotation_text="Median Price of all Counties",
-            annotation_position="bottom right")
             fig.add_vrect(x0="2008", x1="2009.75",
             annotation_text="Economic Recision", annotation_position="top left",
             fillcolor="black", opacity=0.25, line_width=0)
@@ -120,9 +117,6 @@ Various Cities and counties can be analysed by filtering options available at to
             fig = ex.line(data_frame = citiests[citiests.City.isin(city)],
             x='Year',y='MedianPrice',color = 'City')
             fig.update_layout(yaxis = dict(title = "Average Price"))
-            fig.add_hline(y=citiests[citiests.City.isin(city)].MedianPrice.mean(), line_dash="dot",
-              annotation_text="Average Price of all Cities",
-              annotation_position="bottom right")
             fig.add_vrect(x0="2008", x1="2009.75",
               annotation_text="Economic Recision", annotation_position="top left",
               fillcolor="black", opacity=0.25, line_width=0)
@@ -145,9 +139,6 @@ Various Cities and counties can be analysed by filtering options available at to
         fig = ex.line(data_frame=timeseries[timeseries.State.isin(s)],x="Year",y='MedianPrice',color='State')
         fig.update_layout(width = 950,height =500,yaxis = dict(title = "Average Price"))
         #plot_bgcolor = 'rgb(0,0,0)'
-        fig.add_hline(y=timeseries[timeseries.State.isin(s)].MedianPrice.mean(), line_dash="dot",
-          annotation_text="Average Price of all States",
-          annotation_position="bottom right")
         fig.add_vrect(x0="2008", x1="2009.75",
           annotation_text="Economic Recision", annotation_position="top left",
           fillcolor="black", opacity=0.25, line_width=0)
@@ -190,7 +181,6 @@ if menubar == "Exploratory Data Analysis":
     question8 = st.expander("Does CrimeRates,School rating and employment opportunities will impact the housing price?")
     question9 = st.expander("Which city has the lowest crime rate (safest), highest school rating and highest employment opportunities?")
     question10 = st.expander("Which city in the East Bay has the highest potential to be another real estate hot spot?")
-    question11 = st.expander("Does Parking Spaces or Garages impact housing prices?")
     question12 = st.expander("How did housing prices change before the lockdown (2years) and after the lockdown?")
 
 
@@ -478,6 +468,69 @@ if menubar == "Exploratory Data Analysis":
 - Areas with better Employment ratings matter the most and have highest ranges of prices.''')
 
         st.write("")
+
+
+
+    with question9:
+
+        st.markdown('''### Work 🔨:
+- Grouped by cities and calculated average crime, school and employment ratings for each city
+- Plotted bar charts for crime, school and employment ratings with respect to city
+
+### Analysis💡:
+- Los Gatos, Orinda, Saratoga,Los Altos, Lafayette, Danville, San Ramon, Tiburon are the **safest cities of Bay Area**.
+- Los Altos, Saratoga, Tiburon, Palo Alto, Orinda, Alamo, Mill Valley, Danville, Menlo Park, Lafayette are the cities with highest employment ratings.
+- Walnut Creek, Pleasanton, Mill Valley, Alamo, Los Gatos,Los Altos, Lafayette, Orinda, Palo Alto, Fremont, Dublin, Danville, San Carlos, Cupertino, San Ramon, Saratoga, Burlingame, Tiburon, Belmont are the cities with highest school ratings.
+
+''')
+
+
+
+    with question10:
+        time4,time5,time6 = st.columns((0.35,0.05,1))
+
+
+        with time4:
+            c = st.radio("",['Counties','cities'])
+            st.write("")
+            st.markdown('''California is on of the hottest cities for real estate and growing strong day by day.
+We have choose Bay Area as our reaserch area to analyse real estate market.
+Below plot shows Average price for each of the counties and cities in california.
+Grey Shaded Areas represent Economic recision and covid-19 pandemic respectively
+
+**Note: San Francisco county average price is declining since lockdown**''')
+
+
+        with time6:
+
+            if c == 'Counties':
+
+                county = st.multiselect("",counties.CountyName.unique(),counties.CountyName.unique()[:10])
+                fig = ex.line(data_frame=counties[counties.CountyName.isin(county)],x='Year',y='MedianPrice',color='CountyName')
+                fig.update_layout(yaxis = dict(title = "Average Price"))
+                fig.add_vrect(x0="2008", x1="2009.75",
+                annotation_text="Economic Recision", annotation_position="top left",
+                fillcolor="black", opacity=0.25, line_width=0)
+                fig.add_vrect(x0="2020.1", x1="2021.25",
+                annotation_text="Covid", annotation_position="top left",
+                fillcolor="black", opacity=0.25, line_width=0)
+                fig.update_layout(width = 950,height = 500)
+                st.plotly_chart(fig)
+
+            if c == 'cities':
+                    #['Dublin','Danville','Alamo','San Francisco','Los Altos','Sunnyvale','Fremont']
+                city = st.multiselect("",citiests.City.unique(),citiests.City.unique()[:10])
+                fig = ex.line(data_frame = citiests[citiests.City.isin(city)],
+                x='Year',y='MedianPrice',color = 'City')
+                fig.update_layout(yaxis = dict(title = "Average Price"))
+                fig.add_vrect(x0="2008", x1="2009.75",
+                  annotation_text="Economic Recision", annotation_position="top left",
+                  fillcolor="black", opacity=0.25, line_width=0)
+                fig.add_vrect(x0="2020.1", x1="2021.25",
+                  annotation_text="Covid", annotation_position="top left",
+                  fillcolor="black", opacity=0.25, line_width=0)
+                fig.update_layout(width = 950,height = 500)
+                st.plotly_chart(fig)
 
 
 
