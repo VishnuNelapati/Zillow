@@ -349,36 +349,11 @@ if menubar == "Exploratory Data Analysis":
         q7_1,q7_2,q7_3 = st.columns((1,0.2,0.8))
 
         with q7_1:
-            price_history_df = PriceHistory
-            price_history_df = price_history_df[price_history_df['postingIsRental'] == False]
-            price_history_df = price_history_df.dropna(subset=['price'])
-            price_history_df = price_history_df[price_history_df.price>20000]
-            price_history_df['date'] =  pd.to_datetime(price_history_df['date'], errors='coerce')
-            price_history_df = price_history_df.sort_values(by=['Zpid','date'], ascending=False)
-            v = price_history_df.Zpid.value_counts()
-            price_history_df = price_history_df[price_history_df.Zpid.isin(v.index[v.gt(1)])]
-            first_record = price_history_df.groupby('Zpid').head(1)
-            last_record = price_history_df.groupby('Zpid').tail(1)
-            price_history_df_new = pd.concat([first_record, last_record], ignore_index=True)
-            price_change_df = pd.DataFrame()
-            counter = 0
-            for i in sorted(list(set(price_history_df_new.Zpid.values))):
-                counter = counter + 1
-                temp = price_history_df_new[price_history_df_new.Zpid == i]
-                if len(temp) >1:
-                    price_change_df = pd.concat((price_change_df,pd.DataFrame({'Zpid':i,'priceChangeRate':(temp['price'].pct_change(periods = -1)).iloc[0],'days':(temp['date'].diff(periods = -1)).iloc[0]},index=[counter])))
+            @st.cache(allow_output_mutation=True)
+            def f():
+                return pd.read_csv("https://raw.githubusercontent.com/VishnuNelapati/Zillow/main/final_df.csv")
 
-            price_change_df.days = price_change_df.days.dt.days
-            price_change_df = price_change_df[price_change_df['days'] >= 15]
-            price_change_df['days'] = price_change_df['days']/365
-            price_change_df = price_change_df.rename(columns={"days": "Years"})
-            price_change_df = price_change_df[price_change_df['Years'] != 0.000000]
-            price_change_df['priceChangeRatePerYear'] = price_change_df['priceChangeRate']/price_change_df['Years']
-            main_df = zillow_detail_df[['zpid','city','homeType']]
-            main_df = main_df.rename(columns={"zpid": "Zpid"})
-            final_df = pd.merge(price_change_df, main_df, how='inner', on = 'Zpid')
-            v = final_df.city.value_counts()
-            final_df = final_df[final_df.city.isin(v.index[v.gt(20)])]
+            final_df = f()
 
             # Identifying the cities and their respective average priceChangePerYear
             by_city = final_df[['city','priceChangeRatePerYear']].groupby('city').mean()
