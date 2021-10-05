@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import plotly.express as ex
 import streamlit as st
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
 import streamlit.components.v1 as components
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
@@ -13,7 +15,7 @@ from sklearn.pipeline import Pipeline
 from xgboost import XGBRegressor
 from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer
-from sklearn.metrics import accuracy_score,confusion_matrix,mean_absolute_error,mean_squared_error
+from sklearn.metrics import accuracy_score,confusion_matrix,mean_absolute_error,mean_squared_error,r2_score
 import pydeck as pdk
 import math
 #import altair as alt
@@ -89,6 +91,7 @@ if menubar == "Exploratory Data Analysis":
     mapspace1,map1,mapspace2,map2,mapspace3 = st.columns((0.05,1,0.05,1,0.05))
 
     with map1:
+        st.subheader("Bubble Chart")
 
         fig = ex.scatter_mapbox(data[(data.notnull()['latitude'] & data.notnull()['price'])],
                                 lat="latitude", lon="longitude", hover_name="city",
@@ -99,14 +102,13 @@ if menubar == "Exploratory Data Analysis":
 
         st.plotly_chart(fig)
 
-        st.text('''Description of this map
 
-
-
-
-    Ends here''')
+        st.markdown('''**This map show distribution of houses around california.
+The size of the bubble represents the house price.The larger the size of the bubble the higher the price of the house.The color of the bubble indicates
+in which range the house prices fall.Darker blue represents the house is of low price and yellow or orange represnet the houses of higher price.**''')
 
     with map2:
+        st.subheader("Elevation  Chart")
         st.pydeck_chart(pdk.Deck(initial_view_state={
                     "latitude": 37.629,
                     "longitude": -122.171,
@@ -141,12 +143,10 @@ if menubar == "Exploratory Data Analysis":
         # HtmlFile = open("grid_layer.html", 'r', encoding='utf-8')
         # source_code = HtmlFile.read()
         # components.html(source_code,width = 650,height=600,scrolling = True)
-        st.text('''Description of this map
-
-
-
-
-Ends here''')
+        st.markdown('''**This Map show house Distribution in bay area.
+The height of each stick indicates how high the price of the house is.
+The color red indicates house is high price and green indicates that house is low price.
+The Map can be zoomed in and angle of view can be chnaged by mouse left click.**''')
 
 
     st.title("Analysis Questions")
@@ -217,6 +217,19 @@ Ends here''')
 - Multi family is just around 30/sqft less than townhouse and condo with the avg price/sqft being 715
 - Manufactured is the cheapest home type in the bay area in term of price/sqft for 236/sqft''')
 
+    with question3:
+        st.image(
+            "http://cdn.home-designing.com/wp-content/uploads/2014/07/small-3-bedroom-house-plan.jpeg",width = 600)
+        #create a dataframe that have all data of houses that have 3 bedrooms and 2 bathrooms
+        bed3bath2 = zillow_detail_df[(zillow_detail_df['bedrooms'] == 3) & (zillow_detail_df['bathrooms'] == 2)]
+        st.write('The number of houses that have 3 bedrooms and 2 bathrooms are', bed3bath2.shape[0])
+        #average the housing price for 3 bedrooms and 2 bathrooms
+        price= bed3bath2.price.mean()
+        def my_value(number):
+            return ("{:,.0f}".format(number))
+        st.markdown(f'The average price of a house that have 3 bedrooms and 2 bathrooms in the bay area is **${my_value(price)}**')
+
+
     with question4:
         st.write('---')
         q4_1,q4_2,q4_3 = st.columns((1,0.1,0.9))
@@ -240,6 +253,7 @@ Ends here''')
 - Following are single family and condo for approximately 1.3 and 1.1  million dollars, respectively for 3 beds and 2 baths
 - Townhouse and Manufactured are the cheapest home type for 3 beds and 2 baths''')
 
+
     with question5:
         st.write('---')
         q5_1,q5_2,q5_3 = st.columns((1,0.1,0.8))
@@ -261,6 +275,136 @@ Ends here''')
 - Los Altos and Palo Alto are the most expensive cities in the bay area to buy 3 beds and 2 baths house. It costs on average ~ 3.5 million dollars
 - For around 2 million dollars, you can buy 3 beds and 2 baths house in Sausalito, Santa Clara, Half Moon Bay, Orinda and San Mateo
 - Hayward, Richmond, and San Pablo are the cheapest cities for buying 3 beds and 2 baths house with the housing price being less than 750,000''')
+
+
+    with question6:
+        st.write('---')
+        q6_1,q6_2,q6_3 = st.columns((1,0.2,0.8))
+
+        with q6_1:
+            # Identifying the columns to be worked on from main dataframe
+            mini_df = zillow_detail_df[['city','CalendarYear built']]
+
+            # Arranging the data frame in the ascending oreder of 'CalendarYear built'
+            mini_df = mini_df.sort_values(by='CalendarYear built', ascending=True)
+
+            # Considering top 500 and bottom 500 properties to perform the analysis
+            old_properties = mini_df.head(500)
+            new_properties = mini_df.tail(500)
+
+            # Identifying the top 10 cities with the oldest properties and newest properties
+            old_properties = old_properties['city'].value_counts().rename_axis('City').reset_index(name='Number of properties').head(10)
+            new_properties = new_properties['city'].value_counts().rename_axis('City').reset_index(name='Number of properties').head(10)
+
+            # Plotting bar chart
+            # Adjusting figure size and sharing y-axis.
+
+            fig = make_subplots(rows=1, cols=2, shared_yaxes=True,
+                            subplot_titles=("Cities with old properties","Cities with new properties"))
+
+            fig.add_trace(go.Bar(x=old_properties['City'], y=old_properties['Number of properties'],
+                            marker=dict(color=old_properties['Number of properties'],coloraxis="coloraxis")),
+                      1, 1)
+
+            fig.add_trace(go.Bar(x=new_properties['City'], y=new_properties['Number of properties'],
+                            marker=dict(color=old_properties['Number of properties'],coloraxis="coloraxis")),
+                      1, 2)
+
+            fig.update_layout(showlegend=False,yaxis = dict(title="Number of Properties"),width = 800,height = 400)
+            st.plotly_chart(fig)
+
+        with q6_3:
+
+            st.markdown('''#### Work:hammer::
+- Removed unnecessary columns from the data frame
+- Sorted the data frame based on 'CalendarYear built' in a descending order
+- Considered top 500 rows and grouped them on city to analyze the number of old properties in a city
+- Considered bottom 500 rows and grouped them on city to analyze the number of new properties in a city
+- Plotted bar charts to show the number of old properties and new properties in a city (showing only top 10 cities)
+
+#### Analysis:bulb::
+- Berkeley has the most number of old properties listed on zillow to be sold
+- Mountain view has the most number of new properties listed on zillow to be sold''')
+
+
+    with question7:
+        st.write('---')
+        q7_1,q7_2,q7_3 = st.columns((1,0.2,0.8))
+
+        with q7_1:
+            price_history_df = PriceHistory
+            price_history_df = price_history_df[price_history_df['postingIsRental'] == False]
+            price_history_df = price_history_df.dropna(subset=['price'])
+            price_history_df = price_history_df[price_history_df.price>20000]
+            price_history_df['date'] =  pd.to_datetime(price_history_df['date'], errors='coerce')
+            price_history_df = price_history_df.sort_values(by=['Zpid','date'], ascending=False)
+            v = price_history_df.Zpid.value_counts()
+            price_history_df = price_history_df[price_history_df.Zpid.isin(v.index[v.gt(1)])]
+            first_record = price_history_df.groupby('Zpid').head(1)
+            last_record = price_history_df.groupby('Zpid').tail(1)
+            price_history_df_new = pd.concat([first_record, last_record], ignore_index=True)
+            price_change_df = pd.DataFrame()
+            counter = 0
+            for i in sorted(list(set(price_history_df_new.Zpid.values))):
+                counter = counter + 1
+                temp = price_history_df_new[price_history_df_new.Zpid == i]
+                if len(temp) >1:
+                    price_change_df = pd.concat((price_change_df,pd.DataFrame({'Zpid':i,'priceChangeRate':(temp['price'].pct_change(periods = -1)).iloc[0],'days':(temp['date'].diff(periods = -1)).iloc[0]},index=[counter])))
+
+            price_change_df.days = price_change_df.days.dt.days
+            price_change_df = price_change_df[price_change_df['days'] >= 15]
+            price_change_df['days'] = price_change_df['days']/365
+            price_change_df = price_change_df.rename(columns={"days": "Years"})
+            price_change_df = price_change_df[price_change_df['Years'] != 0.000000]
+            price_change_df['priceChangeRatePerYear'] = price_change_df['priceChangeRate']/price_change_df['Years']
+            main_df = zillow_detail_df[['zpid','city','homeType']]
+            main_df = main_df.rename(columns={"zpid": "Zpid"})
+            final_df = pd.merge(price_change_df, main_df, how='inner', on = 'Zpid')
+            v = final_df.city.value_counts()
+            final_df = final_df[final_df.city.isin(v.index[v.gt(20)])]
+
+            # Identifying the cities and their respective average priceChangePerYear
+            by_city = final_df[['city','priceChangeRatePerYear']].groupby('city').mean()
+            by_city = by_city.sort_values(by='priceChangeRatePerYear', ascending=False)
+            by_city = by_city.reset_index()
+            by_city = by_city.head(10)
+            # Plotting bat chart for better understanding
+            fig = ex.bar(data_frame=by_city,x='city',y='priceChangeRatePerYear',hover_data=['city','priceChangeRatePerYear'],
+                    color ='priceChangeRatePerYear',labels={'city':'City','priceChangeRatePerYear':'Average PCR by Year'},
+                    title = 'PriceChangeRate PerYear with respect to cities')
+            fig.update_layout(width = 800,height = 400,title_x = 0.5)
+            st.plotly_chart(fig)
+
+
+            # Identifying the homeType and it's respective average priceChangeRate
+            by_homeType = final_df[['homeType','priceChangeRatePerYear']].groupby('homeType').mean()
+            by_homeType = by_homeType.sort_values(by='priceChangeRatePerYear', ascending=False)
+            by_homeType = by_homeType.reset_index()
+
+            # Plotting bat chart for better understanding
+            fig1 = ex.bar(data_frame=by_homeType,x='homeType',y='priceChangeRatePerYear',hover_data=['homeType','priceChangeRatePerYear'],
+                         color ='priceChangeRatePerYear',labels={'homeType':'HomeType','priceChangeRatePerYear':'Avg Price Change Rate'},
+            title = 'PriceChangeRatePerYear with respect to Home Type')
+            fig1.update_layout(width = 800,height = 400,title_x = 0.5,title_y = 0.9)
+            st.plotly_chart(fig1)
+
+        with q7_3:
+            st.markdown('''#### Work:
+- Removed all the rows and columns which are irrelavant for the analysis
+- For each property, identified the price for which it was sold for the first time and the latest price of the property and calculated the price change rate
+- Calculated the time gap(in years) between these two events
+- Calculated the price change rate per year by dividing price change rate by time gap
+- Grouped the resulted data frame based on city and hometype separately
+- Plotted bar charts for 'price change rate per year' vs 'city' and 'home type' separately
+
+#### Analysis:
+- Danville has the highest appreciation rate of 35% per year
+- Mill Valley has the lowest appreciation rate of 2% per year
+- Prices of 'Multi family' type homes are increasing the most, which is 22% per year
+- Prices of 'Single family' type homes are increasing 18% per year
+- Prices of 'Town houses' type homes increasing 10% per year
+- Prices of 'Condo' and 'Manufactured' type homes increasing almost 5% per year''')
+
 
     with question8:
         st.write("---")
@@ -342,19 +486,19 @@ Ends here''')
 
         #price_change_rate_df_before.sort_values(by = ['priceChangeRate'],inplace=True,ascending = False)
 
-        # fig = ex.bar(data_frame=price_change_rate_df_before,x='city',y='priceChangeRate',hover_data=['city','priceChangeRate'],
-        #      color ='priceChangeRate',labels={'city':'City','priceChangeRate':'Average PriceChangeRate'},
-        #     title = 'Average price change rate around bay areas before March 19, 2020 ')
-        # fig.update_layout(width = 1200,height = 500,title_x = 0.5)
-        # st.plotly_chart(fig)
-        #
-        # # price_change_rate_df.sort_values(by = ['priceChangeRate'],inplace=True,ascending = False)
-        #
-        # fig = ex.bar(data_frame=price_change_rate_df,x='city',y='priceChangeRate',hover_data=['city','priceChangeRate'],
-        #              color ='priceChangeRate',labels={'city':'City','priceChangeRate':'Average PriceChangeRate'},
-        #             title = 'Average price change rate around bay areas since March 19, 2020')
-        # fig.update_layout(width = 1200,height = 500,title_x = 0.5)
-        # st.plotly_chart(fig)
+        fig = ex.bar(data_frame=price_change_rate_df_before,x='city',y='priceChangeRate',hover_data=['city','priceChangeRate'],
+             color ='priceChangeRate',labels={'city':'City','priceChangeRate':'Average PriceChangeRate'},
+            title = 'Average price change rate around bay areas before March 19, 2020 ')
+        fig.update_layout(width = 1200,height = 600,title_x = 0.5)
+        st.plotly_chart(fig)
+
+        # price_change_rate_df.sort_values(by = ['priceChangeRate'],inplace=True,ascending = False)
+
+        fig = ex.bar(data_frame=price_change_rate_df,x='city',y='priceChangeRate',hover_data=['city','priceChangeRate'],
+                     color ='priceChangeRate',labels={'city':'City','priceChangeRate':'Average PriceChangeRate'},
+                    title = 'Average price change rate around bay areas since March 19, 2020')
+        fig.update_layout(width = 1200,height = 600,title_x = 0.5)
+        st.plotly_chart(fig)
 
         price_change = pd.merge(price_change_rate_df,price_change_rate_df_before,how='outer',on = 'city')
         price_change.columns = ['City','PriceChangeRate_After','PriceChnageRate_Before']
@@ -532,6 +676,9 @@ ends Here""")
 #=========================================================================================================================================================
 if menubar == "House Price Predictions":
 
+    st.title("House Price Prediction Using XGBoost")
+    st.write("")
+
     pipeline1 = pickle.load(open('housemodel.pkl','rb'))
 
     zillow_detail_df = zillow_detail_df.set_index('zpid')
@@ -562,9 +709,67 @@ if menubar == "House Price Predictions":
         return df
 
     test_data = pd.read_csv('https://raw.githubusercontent.com/VishnuNelapati/Zillow/main/testing.csv')
+    test_data.set_index('zpid',inplace = True)
+    y_test = pd.DataFrame(zillow_detail_df.price,index=test_data.index)
+    pred = pd.DataFrame(pipeline1.predict(test_data),index=test_data.index,columns = ['Predicted'])
+    zest = pd.DataFrame(zillow_detail_df.zestimate,index=test_data.index)
+
+    compare = pd.concat((y_test,np.round(pred),zest),axis = 1)
+
+
+    res = pd.DataFrame({'r2_score':[r2_score(y_test,pred)],
+                   'mean_squared_error_zest':[np.sqrt(mean_squared_error(y_test,zest))],
+                   'mean_squared_error_pred':[np.sqrt(mean_squared_error(y_test,pred))]
+                   },index=[1])
+
+    x4,x5,x6 = st.columns((0.8,0.1,1))
+    with x4:
+        st.write("Metrics")
+        st.markdown('''The metrics for the XGBoost model,r2 score close to 98 which indicates that model is able to capture
+        Of the variance in y using the features. The mean square error for Zillow model is 156k  and mean square error of
+        XGB model is 159k.
+        ''')
+        st.write('')
+        st.write(res)
+
+        st.markdown('''As we can observe from the **Distribution of residuals** plot most of the residuals are around zero with few extremes having $1.5M and negative $1M''')
+
+    with x5:
+        fig = ex.histogram(compare['price']-compare['Predicted'])
+        fig.update_layout(xaxis = dict(title = 'Error'),title = 'Distribution of residuals',title_x = 0.5,title_y = 0.9)
+        st.plotly_chart(fig)
+
+    diff_plot = pd.concat((pd.DataFrame(compare['price']-compare['Predicted'],columns = ['PriceDifference']),zillow_detail_df[['latitude','longitude']].reindex(index=  test_data.index)),axis =1)
+    diff_plot = pd.concat((pd.DataFrame(abs(compare['price']-compare['Predicted']),columns = ['AbsPriceDifference']),
+                                   diff_plot),axis = 1)
+
+    x1,x2,x3 = st.columns((1,0.1,0.8))
+    with x1:
+        fig = ex.scatter_mapbox(data_frame=diff_plot,
+                            lat="latitude", lon="longitude", hover_name="PriceDifference",
+                            color = 'PriceDifference', zoom=9, height=600,width = 800,size_max=25,size = 'AbsPriceDifference')
+        fig.update_layout(mapbox_style="open-street-map")
+
+        fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+        st.plotly_chart(fig)
+    with x3:
+        st.subheader("Difference Between the predicted and listed price")
+        st.markdown('''The size of the of the circle represents
+The magnitude of the error we made
+While predicting the house price.
+
+If the circle color is Dark Blue that means
+Model has over estimated the price.
+
+If the circle color is Closer to orange or
+Yellow it indicates that we have under
+Estimated the price of the house.
+''')
+
+    st.subheader("Predict House prices using the test data")
 
     i = np.random.randint(10,len(test_data)-10)
-    one = (zillow_detail_df.loc[test_data.zpid,:]).iloc[i:i+1,:]
+    one = (zillow_detail_df.loc[test_data.index,:]).iloc[i:i+1,:]
     st.write(one)
 
     but1 = st.button("Predict house price for test data with user model",key=1000)
@@ -594,6 +799,7 @@ if menubar == "House Price Predictions":
     st.write("")
     st.write("---")
 
+    st.header("Predict House Price with your own customized Data")
 
     userinputs = st.expander("Predict house prices with your own customized data")
 
@@ -641,6 +847,9 @@ if menubar == "House Price Predictions":
         if predict_button:
             st.write('The predicted house price with specifications cost approximateley $',
             np.round(pipeline1.predict(format(input)))[0])
+
+
+
 
 
 if menubar == "About Us":
