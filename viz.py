@@ -527,9 +527,9 @@ Grey Shaded Areas represent Economic recision and covid-19 pandemic respectively
         pchange_df = pchange_df.loc[pchange_df['date'] >= '2020-03-19']
         pchange_df['date'] = pchange_df['date'].astype('|S')
 
-        # Data between March 19,2018 and March 19,2020 only (2 years)
+        # Data between September 19,2018 and March 19,2020 only (1.5 years)
         pchange_df_before = pchange_df_before.loc[pchange_df_before['date'] < '2020-03-19']
-        pchange_df_before = pchange_df_before.loc[pchange_df_before['date'] >= '2018-03-19']
+        pchange_df_before = pchange_df_before.loc[pchange_df_before['date'] >= '2018-09-19']
         pchange_df_before['date'] = pchange_df_before['date'].astype('|S')
 
         # Calculating mean price change rate for each city
@@ -594,7 +594,7 @@ Grey Shaded Areas represent Economic recision and covid-19 pandemic respectively
 - Plotted 3 graphs, first graph shows the average price change rate for each city before Lockdown, second graph shows the average price change rate for each city after Lockdown and third graph is the overlap of 2 graphs.
 
 ### Analysis:bulb::
-- Comparing average price change rate for data before and over the period of stay-at-home (i.e, March 19, 2020) , it can be observed that almost all the cities changed their housing prices during lockdown, except Belmont, Berkeley, Burlingame, Cupertino, Los Altos, Los Gatos and Richmond where they decreased the same.''')
+- Comparing average price change rate for data before and over the period of stay-at-home (i.e, March 19, 2020) , it can be observed that almost all the cities changed their housing prices during lockdown, except Belmont, Burlingame, Los Altos where they decreased the same.''')
 
 #=======================================================================================================================================================
 #--------------------------------------------------------------Over view ------------------------------------------------------------------------
